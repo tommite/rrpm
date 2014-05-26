@@ -1,0 +1,12 @@
+source('rpm.R')
+library(gdata)
+
+## Load in the data and results
+data <- read.xls('../data/problem.xlsx', sheet=1, skip=1)[,c(1:4,6)]
+rownames(data) <- data[,1]
+data <- data[,-1]
+results <- read.xls('../data/problem.xlsx', sheet=2)
+rownames(results) <- results[,1]
+results <- results[,-1]
+
+budget <- 1000
