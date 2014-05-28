@@ -10,6 +10,9 @@ if (!is.na(solvers['symphony'])) {
 } else {
     stop("No ROI Symphony or GLPK plugin installed")
 }
+if (!is.loaded("compute_right_add")) {
+    dyn.load('optimization.so')
+}
 
 optimize.pf <- function(values, costs, budget, var.type='I') {
     values <- as.vector(values)
@@ -27,3 +30,16 @@ optimize.pf <- function(values, costs, budget, var.type='I') {
     res
 }
 
+compute.right.add.C <- function(projects, budgets) {
+    proj.vals <- as.matrix(projects[,1:ncol(projects)-1])
+    proj.costs <- projects[,ncol(projects)]
+    result <- matrix(0.0, nrow=length(budgets), ncol=ncol(proj.vals))
+    result <- .C("compute_right_add",
+                 as.numeric(proj.vals),
+                 as.numeric(proj.costs),
+                 as.numeric(budgets),
+                 as.integer(nrow(proj.vals)), as.integer(ncol(proj.vals)),
+                 as.integer(length(budgets)),
+                 result=result, DUP=FALSE)$result
+    return(result)
+}

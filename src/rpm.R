@@ -2,6 +2,7 @@ library(plyr)
 library(hitandrun)
 library(ror)
 source('optimization.R')
+source('dominance.R')
 
 ###
 ## Computes RPM non-dominated portfolios
@@ -54,20 +55,18 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
     
     left.side <- Pd %*% as.matrix(proj.data) %*% Wext
     right.side.base <- Pk %*% as.matrix(proj.data) %*% Wext
-    right.side.add <- t(aaply(Wext, 1, function(w) {
-        laply(1:nrow(Pk), function(pf.ind) {
-            optimize.pf(w %*% t(proj.data[(k+1):m,]),
-                        proj.costs[(k+1):m],
-                        value.left[pf.ind], var.type='C')$objval
-        })
-    }))
+    right.side.add <- compute.right.add.C(projects[(k+1):m,], value.left)
+    ## <- t(aaply(Wext, 1, function(w) {
+    ##     laply(1:nrow(Pk), function(pf.ind) {
+    ##         optimize.pf(w %*% t(proj.data[(k+1):m,]),
+    ##                     proj.costs[(k+1):m],
+    ##                     value.left[pf.ind], var.type='C')$objval
+    ##     })
+    ## }))
     right.side <- right.side.base + right.side.add
 
-    dom.rel <- aaply(right.side, 1, function(p) {
-        any(aaply(left.side, 1, function(p.prime) {
-            dom(p.prime, p)
-        }))
-    })
+    dom.rel <- row.dominance(right.side, left.side)
+    
     Pk[!dom.rel,]
 }
 
@@ -81,7 +80,7 @@ dom <- function(a, b) {
 
 ## Tries to generate size portfolios, some might be duplicates
 ## so the return value might be with less rows
-gen.Pd <- function(projects, budget, size=100) {
+gen.Pd <- function(projects, budget, size=1000) {
     proj.inds <- matrix(0, ncol=nrow(projects), nrow=size)
     proj.data <- projects[,-ncol(projects)]
     proj.costs <- projects[,ncol(projects)]
