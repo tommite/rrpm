@@ -1,9 +1,9 @@
-useDynLib(optimization, compute_right_add)
-useDynLib(dominance, row_dominance)
+useDynLib(rpm)
 
 import("ROI")
 import("plyr")
 import("hitandrun")
 import("ror")
 import("gdata")
+
 export(rpm.nondom, row.dominance)

@@ -8,5 +8,4 @@ Description: An R package for computing RPM non-dominated portfolios.
 Depends: R (>= 2.7.0), ROI (>= 0.0.7), ROI.plugin.glpk (>= 0.0-1), plyr (>= 1.8), hitandrun (>= 0.4-1), ror (>= 1.2), gdata (>= 2.13)
 SystemRequirements: lp_solve-lib (>= 5.5)
 License: GPL-3
-LazyLoad: yes
 URL: http://github.com/tommite/rrpm

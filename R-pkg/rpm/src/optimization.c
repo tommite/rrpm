@@ -1,7 +1,4 @@
-#include <R.h>
-#include <stdio.h>
-#include "lpsolve/lp_lib.h"
-#include "matrix.h"
+#include "rpm.h"
 
 void compute_right_add(double *_project_vals, 
 		       double *project_costs, 

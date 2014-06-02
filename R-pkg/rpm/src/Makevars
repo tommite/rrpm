@@ -1,2 +1,2 @@
-PKG_LIBS=-L/usr/lib/lp_solve
+PKG_LIBS=-L/usr/lib/lp_solve -llpsolve55
 OBJECTS=dominance.o optimization.o

@@ -1,6 +1,4 @@
-#include <R.h>
-#include <stdio.h>
-#include "matrix.h"
+#include "rpm.h"
 
 #define bool int
 #define true 1

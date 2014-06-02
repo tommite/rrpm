@@ -26,6 +26,6 @@ compute.right.add.C <- function(projects, budgets) {
                  as.numeric(budgets),
                  as.integer(nrow(proj.vals)), as.integer(ncol(proj.vals)),
                  as.integer(length(budgets)),
-                 result=result, DUP=FALSE)$result
+                 result=result, DUP=FALSE, PACKAGE='rpm')$result
     return(result)
 }
