@@ -1,9 +1,3 @@
-library(plyr)
-library(hitandrun)
-library(ror)
-source('optimization.R')
-source('dominance.R')
-
 ###
 ## Computes RPM non-dominated portfolios
 ## projects: a data frame of project data,
@@ -68,14 +62,6 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
     dom.rel <- row.dominance(right.side, left.side)
     
     Pk[!dom.rel,]
-}
-
-## Checks whether array a dominates array b
-dom <- function(a, b) {
-    a <- as.array(a)
-    b <- as.array(b)
-    stopifnot(length(a) == length(b))
-    all(a >= b) && any(a > b)
 }
 
 ## Tries to generate size portfolios, some might be duplicates

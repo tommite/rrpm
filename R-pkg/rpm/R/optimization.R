@@ -1,19 +1,5 @@
 library(ROI)
 
-## onLoad
-.solver <- NULL
-solvers <- ROI_installed_solvers()
-if (!is.na(solvers['symphony'])) {
-    .solver <<- 'symphony'
-} else if (!is.na(solvers['glpk'])) {
-    .solver <<- 'glpk'
-} else {
-    stop("No ROI Symphony or GLPK plugin installed")
-}
-if (!is.loaded("compute_right_add")) {
-    dyn.load('optimization.so')
-}
-
 optimize.pf <- function(values, costs, budget, var.type='I') {
     values <- as.vector(values)
     stopifnot(length(values) == length(costs))

@@ -9,8 +9,8 @@
 /**
  * Check for each for of a, whether any row of B dominates them
  */
-void row_dominance(double *_a, double *_b, int *_ncol, int *_nrow_a, int *_nrow_b,
-	       double *result) {
+void row_dominance(double *_a, double *_b, int *_ncol, 
+		   int *_nrow_a, int *_nrow_b, double *result) {
   const int ncol = *_ncol;
   const int nrow_a = *_nrow_a;
   const int nrow_b = *_nrow_b;

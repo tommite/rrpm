@@ -1,8 +1,3 @@
-if (!is.loaded("row_dominance")) {    
-    dyn.load('dominance.so')
-}
-
-
 row.dominance <- function(a, b) {
     stopifnot(ncol(a) == ncol(b))
     stopifnot(is.matrix(a))
