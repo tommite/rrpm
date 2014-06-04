@@ -16,7 +16,7 @@ optimize.pf <- function(values, costs, budget, var.type='I') {
 }
 
 compute.right.add.C <- function(projects, budgets) {
-    proj.vals <- as.matrix(projects[,1:ncol(projects)-1])
+    proj.vals <- as.matrix(projects[,1:ncol(projects)-1, drop=FALSE])
     proj.costs <- projects[,ncol(projects)]
     result <- matrix(0.0, nrow=length(budgets), ncol=ncol(proj.vals))
     result <- .C("compute_right_add",

@@ -50,7 +50,7 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
     
     left.side <- Pd %*% as.matrix(proj.data) %*% Wext
     right.side.base <- Pk %*% as.matrix(proj.data) %*% Wext
-    right.side.add <- compute.right.add.C(projects[(k+1):m,], value.left)
+    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left)
     ## <- t(aaply(Wext, 1, function(w) {
     ##     laply(1:nrow(Pk), function(pf.ind) {
     ##         optimize.pf(w %*% t(proj.data[(k+1):m,]),
