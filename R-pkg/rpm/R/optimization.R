@@ -1,5 +1,3 @@
-library(ROI)
-
 optimize.pf <- function(values, costs, budget, var.type='I') {
     values <- as.vector(values)
     stopifnot(length(values) == length(costs))
@@ -12,6 +10,7 @@ optimize.pf <- function(values, costs, budget, var.type='I') {
              bounds=V_bound(1:m, 1:m, rep(0, m), rep(1, m)),
              maximum=TRUE)
     res <- ROI_solve(ip, .solver)
+
     stopifnot(res$status$code == 0)
     res
 }

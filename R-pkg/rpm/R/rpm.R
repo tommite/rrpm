@@ -3,9 +3,10 @@
 ## projects: a data frame of project data,
 ## one row per project, last column cost information
 ## budget: total available budget
+## nr.eff: how many random efficient portfolios to create in the beginning
 ## PRECOND: all project costs must be <= budget
 ###
-rpm.nondom <- function(projects, budget) {
+rpm.nondom <- function(projects, budget, nr.eff=1000) {
     stopifnot(all(projects[,ncol(projects)] <= budget)) # PRECOND
     
     m <- nrow(projects)
@@ -14,7 +15,7 @@ rpm.nondom <- function(projects, budget) {
     Pk[2,1] <- 1
     colnames(Pk) <- paste('x', 1:m, sep='')
 
-    Pd <- gen.Pd(projects, budget)
+    Pd <- gen.Pd(projects, budget, nr.eff)
 
     ## round k = 1, ..., m
     for (k in 2:m) {
@@ -66,7 +67,7 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
 
 ## Tries to generate size portfolios, some might be duplicates
 ## so the return value might be with less rows
-gen.Pd <- function(projects, budget, size=1000) {
+gen.Pd <- function(projects, budget, size) {
     proj.inds <- matrix(0, ncol=nrow(projects), nrow=size)
     proj.data <- projects[,-ncol(projects)]
     proj.costs <- projects[,ncol(projects)]
