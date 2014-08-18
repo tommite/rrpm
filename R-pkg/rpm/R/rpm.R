@@ -1,3 +1,38 @@
+EPS <- 1e-10
+
+## Copy-pasted from hitandrun (could export the methods instead?)
+filterConstraints <- function(constr, sel) {
+  list(constr = constr[['constr']][sel, , drop=FALSE],
+       rhs = constr[['rhs']][sel],
+       dir = constr[['dir']][sel])
+}
+eq.constr <- function(constr) {
+  filterConstraints(constr, constr[['dir']] == '=')
+}
+iq.constr <- function(constr) {
+  x <- filterConstraints(constr, constr[['dir']] != '=')
+  stopifnot(all(x[['dir']] == '<='))
+  x
+}
+####
+
+make.vertices <- function(n, constraints=NULL) {
+  stopifnot(n > 1)
+  stopifnot(is.null(constraints) || ncol(constraints$constr) == n)
+
+  constr <- eliminateRedundant(mergeConstraints(simplexConstraints(n), constraints))
+  eq <- eq.constr(constr)
+  iq <- iq.constr(constr)
+
+  h <- 
+    if (length(eq[['dir']]) > 0) {
+      makeH(iq$constr, iq$rhs, eq$constr, eq$rhs)
+    } else {
+      makeH(iq$constr, iq$rhs)
+    }
+  as.matrix(unclass(scdd(h)$output))[,-c(1:2), drop=FALSE]
+}
+
 ###
 ## Computes RPM non-dominated portfolios
 ## projects: a data frame of project data,
@@ -6,7 +41,7 @@
 ## nr.eff: how many random efficient portfolios to create in the beginning
 ## PRECOND: all project costs must be <= budget
 ###
-rpm.nondom <- function(projects, budget, nr.eff=1000) {
+rpm.nondom <- function(projects, budget, Wext=make.vertices(ncol(projects)-1), nr.eff=1000) {
     stopifnot(all(projects[,ncol(projects)] <= budget)) # PRECOND
     
     m <- nrow(projects)
@@ -17,29 +52,29 @@ rpm.nondom <- function(projects, budget, nr.eff=1000) {
 
     Pd <- gen.Pd(projects, budget, nr.eff)
 
-    ## round k = 1, ..., m
+    ## round k = 2, ..., m
     for (k in 2:m) {
         Pk.with.xk <- Pk
         Pk.with.xk[,k] = 1
         Pk <- rbind(Pk, filter.feasible(Pk.with.xk, projects, budget))
         if (k < m) {
             pk.size <- nrow(Pk)
-            Pk <- filter.Uk.dom(Pk, Pd, projects, budget, k)
+            Pk <- filter.Uk.dom(Pk, Pd, projects, budget, k, Wext)
             message('Round ', k, '/', m, ' : ', nrow(Pk), '/', pk.size, ' PF left after filtering')
         }
     }
-    filter.dominated(Pk, projects)    
+    filter.dominated(Pk, projects)
 }
 
 filter.dominated <- function(proj.inds, projects) {
-    all <- proj.inds %*% as.matrix(projects[,1:ncol(projects)-1])
+    all <- proj.inds %*% as.matrix(projects[,-ncol(projects)])
     proj.inds[sort(maximalvectors.indices(all)),]
 }
 
 ## Filters portfolios in Pk with respect to
 ## being Uk-dominated by reference portfolios
 ## in Pd
-filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-1)) {
+filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext) {
     stopifnot(k < ncol(Pk))
     proj.data <- projects[,-ncol(projects)]
     proj.costs <- projects[,ncol(projects)]
@@ -50,17 +85,11 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
     
     left.side <- Pd %*% as.matrix(proj.data) %*% Wext
     right.side.base <- Pk %*% as.matrix(proj.data) %*% Wext
-    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left)
-    ## <- t(aaply(Wext, 1, function(w) {
-    ##     laply(1:nrow(Pk), function(pf.ind) {
-    ##         optimize.pf(w %*% t(proj.data[(k+1):m,]),
-    ##                     proj.costs[(k+1):m],
-    ##                     value.left[pf.ind], var.type='C')$objval
-    ##     })
-    ## }))
+    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left) %*% Wext
+    
     right.side <- right.side.base + right.side.add
-
-    dom.rel <- row.dominance(right.side, left.side)
+    
+    dom.rel <- row.dominance(right.side + EPS, left.side)
     
     Pk[!dom.rel,]
 }
@@ -68,6 +97,7 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext=diag(ncol(projects)-
 ## Tries to generate size portfolios, some might be duplicates
 ## so the return value might be with less rows
 gen.Pd <- function(projects, budget, size) {
+  stopifnot(size > 1)
     proj.inds <- matrix(0, ncol=nrow(projects), nrow=size)
     proj.data <- projects[,-ncol(projects)]
     proj.costs <- projects[,ncol(projects)]

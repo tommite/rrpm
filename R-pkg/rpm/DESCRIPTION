@@ -6,7 +6,7 @@ Author: Tommi Tervonen
 Maintainer: Tommi Tervonen <tommi@smaa.fi>
 Description: An R package for computing RPM non-dominated portfolios.
 Depends: R (>= 2.7.0), ROI (>= 0.0.7), ROI.plugin.glpk (>= 0.0-1), plyr (>= 1.8), hitandrun (>= 0.4-1), ror (>= 1.2)
-Suggests: ROI.plugin.symphony (>= 0.0-1)
+Imports: rcdd (>= 1.1)
 SystemRequirements: lp_solve-lib (>= 5.5)
 License: GPL-3
 URL: http://github.com/tommite/rrpm

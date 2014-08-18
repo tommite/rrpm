@@ -13,16 +13,16 @@ void compute_right_add(double *_project_vals,
   Matrix result = {_result, nr_b, m};
 
   lprec *lp;
-  REAL obj_func[m+1];
-  REAL cost_const[m+1];
   lp = make_lp(1, m);
+  if (lp == NULL) {
+    error ("unable to create a new LP model");
+  }
   set_maxim(lp);
   set_constr_type(lp, 1, LE);
   set_verbose(lp, SEVERE);
 
-  if (lp == NULL) {
-    error ("unable to create a new LP model");
-  }
+  REAL * obj_func = malloc (sizeof(REAL) * (m+1));
+  REAL * cost_const = malloc (sizeof(REAL) * (m+1));
 
   for (int i=0;i<m;i++) {
     set_upbo(lp, i+1, 1.0);
@@ -30,6 +30,8 @@ void compute_right_add(double *_project_vals,
   }
 
   if(!set_row(lp, 1, cost_const)) {
+    free(obj_func);
+    free(cost_const);
     error("unable to set constraint row");
   }
 
@@ -39,6 +41,8 @@ void compute_right_add(double *_project_vals,
     }
     
     if (!set_obj_fn(lp, obj_func)) {
+      free(obj_func);
+      free(cost_const);
       error("unable to set objective function");
     }
     
@@ -48,6 +52,8 @@ void compute_right_add(double *_project_vals,
       int res = solve(lp);
       
       if (res != 0) {
+	free(obj_func);
+	free(cost_const);
 	error("unable to solve the model, error code: %d", res);
       }
       
@@ -55,4 +61,6 @@ void compute_right_add(double *_project_vals,
     }
   }
   delete_lp(lp);
+  free(obj_func);
+  free(cost_const);
 }

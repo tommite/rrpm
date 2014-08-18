@@ -4,5 +4,6 @@ import("ROI")
 import("plyr")
 import("hitandrun")
 import("ror")
+import("rcdd")
 
 export(rpm.nondom, row.dominance)
