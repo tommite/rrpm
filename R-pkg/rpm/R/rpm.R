@@ -68,7 +68,7 @@ rpm.nondom <- function(projects, budget, Wext=make.vertices(ncol(projects)-1), n
 
 filter.dominated <- function(proj.inds, projects) {
     all <- proj.inds %*% as.matrix(projects[,-ncol(projects)])
-    proj.inds[sort(maximalvectors.indices(all)),]
+    proj.inds[sort(maximalvectors.indices(all)),,drop=FALSE]
 }
 
 ## Filters portfolios in Pk with respect to
@@ -91,7 +91,7 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext) {
     
     dom.rel <- row.dominance(right.side + EPS, left.side)
     
-    Pk[!dom.rel,]
+    Pk[!dom.rel,, drop=FALSE]
 }
 
 ## Tries to generate size portfolios, some might be duplicates
