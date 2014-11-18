@@ -12,5 +12,8 @@ pkg: rpm/src/*.c rpm/src/*.h rpm/DESCRIPTION rpm/NAMESPACE rpm/R/* rpm/tests/*
 install:
 	R CMD INSTALL rpm
 
+test:
+	R CMD check rpm
+
 clean:
 	rm -f rpm/src/*.o rpm/src/*.so rpm/src/symbols.rds

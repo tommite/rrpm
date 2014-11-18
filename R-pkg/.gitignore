@@ -1,0 +1,5 @@
+rpm/src/symbols.rds
+rpm/src/*.o
+rpm/src/*.so
+rpm.Rcheck
+*.tar.gz

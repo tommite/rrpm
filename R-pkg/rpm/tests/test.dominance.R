@@ -1,14 +1,19 @@
+library(testthat)
 library(rpm)
 
-a <- matrix(c(
-    1, 1, 1,
-    1, 2, 2,
-    1, 2, 3), ncol=3, byrow=TRUE)
+test_that("row.dominance", {
 
-b <- matrix(c(
-    1, 1, 1,
-    2, 2, 2,
-    1, 2, 3), ncol=3, byrow=TRUE)
+  a <- matrix(c(
+                1, 1, 1,
+                1, 2, 2,
+                1, 2, 3), ncol=3, byrow=TRUE)
 
-dom <- row.dominance(a, b)
-stopifnot(all(dom == c(1, 1, 0)))
+  b <- matrix(c(
+                1, 1, 1,
+                2, 2, 2,
+                1, 2, 3), ncol=3, byrow=TRUE)
+
+  dom <- row.dominance(a, b)
+
+  expect_identical(dom, array(c(1, 1, 0)))
+})
