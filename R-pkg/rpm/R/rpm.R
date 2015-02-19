@@ -83,9 +83,9 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext) {
 
     value.left <- as.vector(budget - (Pk %*% proj.costs))
     
-    left.side <- Pd %*% as.matrix(proj.data) %*% Wext
-    right.side.base <- Pk %*% as.matrix(proj.data) %*% Wext
-    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left) %*% Wext
+    left.side <- Pd %*% as.matrix(proj.data) %*% t(Wext)
+    right.side.base <- Pk %*% as.matrix(proj.data) %*% t(Wext)
+    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left) %*% t(Wext)
     
     right.side <- right.side.base + right.side.add
     
