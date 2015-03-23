@@ -1,4 +1,4 @@
-EPS <- 1e-10
+EPS <- 1E-5
 
 ## Copy-pasted from hitandrun (could export the methods instead?)
 filterConstraints <- function(constr, sel) {
@@ -64,6 +64,40 @@ rpm.nondom <- function(projects, budget, Wext=make.vertices(ncol(projects)-1), n
         }
     }
     filter.dominated(Pk, projects)
+}
+
+har.constr.to.roi <- function(constr) {
+  map.dir <- function(dir) {
+    replace(dir, dir=='=', '==')
+  }
+  L_constraint(L = constr$constr,
+       dir = map.dir(constr$dir),
+       rhs = constr$rhs)
+}
+
+optimality.constraints <- function(alt, all.perfs) {
+  mat <- aaply(all.perfs, 1, '-', alt)
+  mat <- mat[rowSums(abs(mat)) > 0,]
+  list(constr=mat,
+       dir=rep('<=', nrow(mat)),
+       rhs=rep(-EPS, nrow(mat)))
+}
+
+## Computes row indices of optimal alternatives given restrictions on weights
+##
+## perfs: a matrix of alternative performances
+## w.constr: weight constraints (of type used in 'hitandrun' package)
+optimal.alternative.indices <- function(perfs, w.constr=simplexConstraints(ncol(perfs))) {
+  opt <- aaply(perfs, 1, function(perf) {
+    m <- length(perf)
+    har.constr <- mergeConstraints(w.constr, optimality.constraints(perf, perfs))
+    obj <- L_objective(rep(1, m))
+    roi.constr <- har.constr.to.roi(har.constr)
+    ip <- OP(obj, roi.constr, bounds=V_bound(1:m, 1:m, rep(0, m), rep(1, m)), maximum=TRUE)
+    res <- ROI_solve(ip, .solver)
+    res$status$code == 0
+  })
+  as.vector(which(opt))
 }
 
 filter.dominated <- function(proj.inds, projects) {

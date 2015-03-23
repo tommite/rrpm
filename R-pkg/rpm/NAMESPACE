@@ -7,4 +7,4 @@ import("hitandrun")
 import("ror")
 import("rcdd")
 
-export(rpm.nondom, row.dominance, make.vertices)
+export(rpm.nondom, row.dominance, make.vertices, optimal.alternative.indices)
