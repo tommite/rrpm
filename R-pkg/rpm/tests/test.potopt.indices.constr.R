@@ -2,7 +2,7 @@ library(testthat)
 library(hitandrun)
 library(rpm)
 
-test_that("optimal.alternative.indices.constr", {
+test_that("potopt.indices.constr", {
   constr <- simplexConstraints(3)
   constr <- mergeConstraints(ordinalConstraint(3, 1, 2), constr)
 
@@ -11,7 +11,7 @@ test_that("optimal.alternative.indices.constr", {
                 2, 1, 1,
                 1, 1, 2), ncol=3, byrow=TRUE)
 
-  opts <- optimal.alternative.indices(a, constr)
+  opts <- potopt.indices(a, constr)
 
   expect_equal(opts, c(2, 3))
 })

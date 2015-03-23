@@ -83,11 +83,11 @@ optimality.constraints <- function(alt, all.perfs) {
        rhs=rep(-EPS, nrow(mat)))
 }
 
-## Computes row indices of optimal alternatives given restrictions on weights
+## Computes row indices of potentially optimal alternatives given restrictions on weights
 ##
 ## perfs: a matrix of alternative performances
 ## w.constr: weight constraints (of type used in 'hitandrun' package)
-optimal.alternative.indices <- function(perfs, w.constr=simplexConstraints(ncol(perfs))) {
+potopt.indices <- function(perfs, w.constr=simplexConstraints(ncol(perfs))) {
   opt <- aaply(perfs, 1, function(perf) {
     m <- length(perf)
     har.constr <- mergeConstraints(w.constr, optimality.constraints(perf, perfs))
