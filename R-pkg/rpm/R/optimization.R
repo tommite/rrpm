@@ -1,11 +1,11 @@
-optimize.pf <- function(values, costs, budget, var.type='I') {
+optimize.pf <- function(values, constr.A, constr.B, var.type='I') {
     values <- as.vector(values)
-    stopifnot(length(values) == length(costs))
+    stopifnot(nrow(constr.A) == length(constr.B))
 
     m <- length(values)
 
     obj.func <- L_objective(values)
-    constr <- L_constraint(costs, c('<='), budget)
+    constr <- L_constraint(constr.A, rep('<=', length(constr.B)), constr.B)
     ip <- OP(obj.func, constr, types=rep(var.type, m),
              bounds=V_bound(1:m, 1:m, rep(0, m), rep(1, m)),
              maximum=TRUE)
@@ -15,16 +15,16 @@ optimize.pf <- function(values, costs, budget, var.type='I') {
     res
 }
 
-compute.right.add.C <- function(projects, budgets) {
-    proj.vals <- as.matrix(projects[,1:ncol(projects)-1, drop=FALSE])
-    proj.costs <- projects[,ncol(projects)]
-    result <- matrix(0.0, nrow=length(budgets), ncol=ncol(proj.vals))
-    result <- .C("compute_right_add",
-                 as.numeric(proj.vals),
-                 as.numeric(proj.costs),
-                 as.numeric(budgets),
-                 as.integer(nrow(proj.vals)), as.integer(ncol(proj.vals)),
-                 as.integer(length(budgets)),
-                 result=result, PACKAGE='rpm')$result
-    return(result)
+compute.right.add.C <- function(projects, constr.A, constr.Bmat) {
+  projects <- as.matrix(projects)
+  result <- matrix(0.0, nrow=nrow(constr.Bmat), ncol=ncol(projects)) # each col = 1 attribute
+  stopifnot(nrow(projects) == ncol(constr.A))
+  result <- .C("compute_right_add",
+               as.numeric(projects),
+               as.numeric(constr.A),
+               as.vector(constr.Bmat),
+               as.integer(nrow(projects)), as.integer(ncol(projects)),
+               as.integer(ncol(constr.Bmat)), as.integer(nrow(constr.Bmat)),
+               result=result, PACKAGE='rpm')$result
+  return(result)
 }

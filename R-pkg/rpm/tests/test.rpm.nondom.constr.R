@@ -18,7 +18,7 @@ test_that("rpm.nondom.constr", {
                       0.5, 0.5, 0,
                       0.333, 0.333, 0.333), ncol=3, byrow=TRUE)
 
-  non.dom <- rpm.nondom(data, budget, Wext=ext.pts, nr.eff=100)
+  non.dom <- rpm.nondom.costs(data[,-ncol(data)], data[,ncol(data)], budget, Wext=ext.pts, nr.eff=100)
 
   expect_equivalent(sort.matrix(non.dom), sort.matrix(results))
 })

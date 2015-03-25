@@ -33,33 +33,38 @@ make.vertices <- function(n, constraints=NULL) {
   as.matrix(unclass(scdd(h)$output))[,-c(1:2), drop=FALSE]
 }
 
+rpm.nondom.costs <- function(projects, costs, budget, Wext=make.vertices(ncol(projects)), nr.eff=100) {
+  costs <- as.vector(costs)
+  constr.A <- matrix(costs, nrow=1)
+  constr.B <- matrix(budget)
+  rpm.nondom(projects, constr.A, constr.B, Wext, nr.eff)
+}
+
 ###
 ## Computes RPM non-dominated portfolios
-## projects: a data frame of project data,
-## one row per project, last column cost information
-## budget: total available budget
+## projects: a data frame of project data (m projects), one row per project
+## constr.A: the constraint coefficient matrix (q constraints, size q x m)
+## constr.B: the constraint limit vector of length q
 ## nr.eff: how many random efficient portfolios to create in the beginning
 ## PRECOND: all project costs must be <= budget
 ###
-rpm.nondom <- function(projects, budget, Wext=make.vertices(ncol(projects)-1), nr.eff=1000) {
-    stopifnot(all(projects[,ncol(projects)] <= budget)) # PRECOND
-    
+rpm.nondom <- function(projects, constr.A, constr.B, Wext=make.vertices(ncol(projects)), nr.eff=1000) {
     m <- nrow(projects)
     
     Pk <- matrix(0, ncol=m, nrow=2) # initial portfolios
     Pk[2,1] <- 1
     colnames(Pk) <- paste('x', 1:m, sep='')
 
-    Pd <- gen.Pd(projects, budget, nr.eff)
+    Pd <- gen.Pd(projects, constr.A, constr.B, nr.eff)
 
     ## round k = 2, ..., m
     for (k in 2:m) {
         Pk.with.xk <- Pk
         Pk.with.xk[,k] = 1
-        Pk <- rbind(Pk, filter.feasible(Pk.with.xk, projects, budget))
+        Pk <- rbind(Pk, filter.feasible(Pk.with.xk, constr.A, constr.B))
         if (k < m) {
             pk.size <- nrow(Pk)
-            Pk <- filter.Uk.dom(Pk, Pd, projects, budget, k, Wext)
+            Pk <- filter.Uk.dom(Pk, Pd, projects, constr.A, constr.B, k, Wext)
             message('Round ', k, '/', m, ' : ', nrow(Pk), '/', pk.size, ' PF left after filtering')
         }
     }
@@ -101,25 +106,26 @@ potopt.indices <- function(perfs, w.constr=simplexConstraints(ncol(perfs))) {
 }
 
 filter.dominated <- function(proj.inds, projects) {
-    all <- proj.inds %*% as.matrix(projects[,-ncol(projects)])
+    all <- proj.inds %*% as.matrix(projects)
     proj.inds[sort(maximalvectors.indices(all)),,drop=FALSE]
 }
 
 ## Filters portfolios in Pk with respect to
 ## being Uk-dominated by reference portfolios
 ## in Pd
-filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext) {
+filter.Uk.dom <- function(Pk, Pd, projects, constr.A, constr.B, k, Wext) {
     stopifnot(k < ncol(Pk))
-    proj.data <- projects[,-ncol(projects)]
-    proj.costs <- projects[,ncol(projects)]
+
+    projects <- as.matrix(projects)
 
     m <- ncol(Pk)
 
-    value.left <- as.vector(budget - (Pk %*% proj.costs))
+    constr.B.left <- as.matrix(aaply(Pk %*% t(constr.A), 1, function(x) { constr.B - x }))
     
-    left.side <- Pd %*% as.matrix(proj.data) %*% t(Wext)
-    right.side.base <- Pk %*% as.matrix(proj.data) %*% t(Wext)
-    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE], value.left) %*% t(Wext)
+    left.side <- Pd %*% projects %*% t(Wext)
+    right.side.base <- Pk %*% projects %*% t(Wext)
+    right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE],
+                                          constr.A[,(k+1):m,drop=FALSE],constr.B.left) %*% t(Wext)
     
     right.side <- right.side.base + right.side.add
     
@@ -130,18 +136,14 @@ filter.Uk.dom <- function(Pk, Pd, projects, budget, k, Wext) {
 
 ## Tries to generate size portfolios, some might be duplicates
 ## so the return value might be with less rows
-gen.Pd <- function(projects, budget, size) {
+gen.Pd <- function(projects, constr.A, constr.B, size) {
   stopifnot(size > 1)
-    proj.inds <- matrix(0, ncol=nrow(projects), nrow=size)
-    proj.data <- projects[,-ncol(projects)]
-    proj.costs <- projects[,ncol(projects)]
-    weights <- simplex.sample(ncol(projects)-1, size)$samples
+  proj.inds <- matrix(0, ncol=nrow(projects), nrow=size)
+  weights <- simplex.sample(ncol(projects), size)$samples
 
-    unique(aaply(weights, 1, function(w) { optimize.pf(w %*% t(proj.data), proj.costs, budget)$solution }))
+  unique(aaply(weights, 1, function(w) { optimize.pf(w %*% t(projects), constr.A, constr.B)$solution }))
 }
 
-filter.feasible <- function(proj.inds, projects, budget) {
-    total.use <- proj.inds %*% as.matrix(projects)
-    total.cost <- total.use[,ncol(total.use)]
-    proj.inds[which(total.cost <= budget),]
+filter.feasible <- function(proj.inds, constr.A, constr.B) {
+  proj.inds[aaply(constr.A %*% t(proj.inds), 2, function(x) { all(x <= constr.B) }),]
 }
