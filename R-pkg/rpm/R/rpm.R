@@ -56,16 +56,19 @@ rpm.nondom <- function(projects, constr.A, constr.B, Wext=make.vertices(ncol(pro
     colnames(Pk) <- paste('x', 1:m, sep='')
 
     Pd <- gen.Pd(projects, constr.A, constr.B, nr.eff)
+    message('Found ', nrow(Pd), ' distinct candidate portfolios for dominance checking')
 
     ## round k = 2, ..., m
     for (k in 2:m) {
         Pk.with.xk <- Pk
         Pk.with.xk[,k] = 1
         Pk <- rbind(Pk, filter.feasible(Pk.with.xk, constr.A, constr.B))
-        if (k < m) {
-            pk.size <- nrow(Pk)
-            Pk <- filter.Uk.dom(Pk, Pd, projects, constr.A, constr.B, k, Wext)
-            message('Round ', k, '/', m, ' : ', nrow(Pk), '/', pk.size, ' PF left after filtering')
+        if (k < m && k >= m/2) { # only filter from the second half onwards
+          pk.size <- nrow(Pk)
+          Pk <- filter.Uk.dom(Pk, Pd, projects, constr.A, constr.B, k, Wext)
+          message('Round ', k, '/', m, ' : ', nrow(Pk), '/', pk.size, ' PF left after filtering')
+        } else {
+          message('Round ', k, '/', m, ' : ', nrow(Pk), ' feasible PF')
         }
     }
     filter.dominated(Pk, projects)
@@ -120,13 +123,13 @@ filter.Uk.dom <- function(Pk, Pd, projects, constr.A, constr.B, k, Wext) {
 
     m <- ncol(Pk)
 
-    constr.B.left <- as.matrix(aaply(Pk %*% t(constr.A), 1, function(x) { constr.B - x }))
+    ##  constr.B.left <- as.matrix(aaply(Pk %*% t(constr.A), 1, function(x) { constr.B - x }))
+    constr.B.left <- rowwise.sums(-(Pk %*% t(constr.A)), constr.B)
     
     left.side <- Pd %*% projects %*% t(Wext)
     right.side.base <- Pk %*% projects %*% t(Wext)
     right.side.add <- compute.right.add.C(projects[(k+1):m,,drop=FALSE],
-                                          constr.A[,(k+1):m,drop=FALSE],constr.B.left) %*% t(Wext)
-    
+                                          constr.A[,(k+1):m,drop=FALSE], constr.B.left) %*% t(Wext)
     right.side <- right.side.base + right.side.add
     
     dom.rel <- row.dominance(right.side + EPS, left.side)
@@ -145,5 +148,8 @@ gen.Pd <- function(projects, constr.A, constr.B, size) {
 }
 
 filter.feasible <- function(proj.inds, constr.A, constr.B) {
-  proj.inds[aaply(constr.A %*% t(proj.inds), 2, function(x) { all(x <= constr.B) }),]
+  satisfy.all <- function(x) { all(x <= constr.B) }
+  ##  inds <- aaply(constr.A %*% t(proj.inds), 2, satisfy.all)
+  inds <- colSums(((constr.A %*% t(proj.inds)) - as.vector(constr.B)) <= 0) == length(as.vector(constr.B))
+  proj.inds[inds,]
 }

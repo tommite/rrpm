@@ -12,3 +12,9 @@ void compute_right_add(double *_projects,
 
 void row_dominance(double *_a, double *_b, int *_ncol, 
 		   int *_nrow_a, int *_nrow_b, double *result);
+
+void rowwise_sums(double *_mat, 
+		  double *vec,
+		  int *_m,
+		  int *_n,
+		  double *_result);
