@@ -48,7 +48,8 @@ rpm.nondom.costs <- function(projects, costs, budget, Wext=make.vertices(ncol(pr
 ## nr.eff: how many random efficient portfolios to create in the beginning
 ## PRECOND: all project costs must be <= budget
 ###
-rpm.nondom <- function(projects, constr.A, constr.B, Wext=make.vertices(ncol(projects)), nr.eff=1000) {
+rpm.nondom <- function(projects, constr.A, constr.B,
+                       Wext=make.vertices(ncol(projects)), nr.eff=1000, filter.limit=0.33) {
     m <- nrow(projects)
     
     Pk <- matrix(0, ncol=m, nrow=2) # initial portfolios
@@ -63,12 +64,12 @@ rpm.nondom <- function(projects, constr.A, constr.B, Wext=make.vertices(ncol(pro
         Pk.with.xk <- Pk
         Pk.with.xk[,k] = 1
         Pk <- rbind(Pk, filter.feasible(Pk.with.xk, constr.A, constr.B))
-        if (k < m && k >= m/2) { # only filter from the second half onwards
+        if (k < m && k >= m*filter.limit) {
           pk.size <- nrow(Pk)
           Pk <- filter.Uk.dom(Pk, Pd, projects, constr.A, constr.B, k, Wext)
           message('Round ', k, '/', m, ' : ', nrow(Pk), '/', pk.size, ' PF left after filtering')
         } else {
-          message('Round ', k, '/', m, ' : ', nrow(Pk), ' feasible PF')
+          message('Round ', k, '/', m, ' : ', nrow(Pk), ' feasible PF (no filtering yet)')
         }
     }
     filter.dominated(Pk, projects)
