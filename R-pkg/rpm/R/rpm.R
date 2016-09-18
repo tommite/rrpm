@@ -97,16 +97,16 @@ optimality.constraints <- function(alt, all.perfs) {
 ## perfs: a matrix of alternative performances
 ## w.constr: weight constraints (of type used in 'hitandrun' package)
 potopt.indices <- function(perfs, w.constr=simplexConstraints(ncol(perfs))) {
-  opt <- aaply(perfs, 1, function(perf) {
-    m <- length(perf)
-    har.constr <- mergeConstraints(w.constr, optimality.constraints(perf, perfs))
-    obj <- L_objective(rep(1, m))
-    roi.constr <- har.constr.to.roi(har.constr)
-    ip <- OP(obj, roi.constr, bounds=V_bound(1:m, 1:m, rep(0, m), rep(1, m)), maximum=TRUE)
-    res <- ROI_solve(ip, .solver)
-    res$status$code == 0
-  })
-  as.vector(which(opt))
+    opt <- aaply(perfs, 1, function(perf) {
+        m <- length(perf)
+        har.constr <- mergeConstraints(w.constr, optimality.constraints(perf, perfs))
+        obj <- L_objective(rep(1, m))
+        roi.constr <- har.constr.to.roi(har.constr)
+        ip <- OP(obj, roi.constr, bounds=V_bound(1:m, 1:m, rep(0, m), rep(1, m)), maximum=TRUE)
+        res <- ROI_solve(ip, .solver)
+        res$status$code == 0
+    }, .progress='text')
+    as.vector(which(opt))
 }
 
 filter.dominated <- function(proj.inds, projects) {
