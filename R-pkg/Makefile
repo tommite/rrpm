@@ -2,10 +2,8 @@ all: pkg
 
 .PHONY: all clean install
 
-LD_LIBRARY_PATH=/usr/lib/lp_solve
-
 pkg: rpm/src/*.c rpm/src/*.h rpm/DESCRIPTION rpm/NAMESPACE rpm/R/* rpm/tests/*
-	rm -f rpm/src/*.o rpm/src/*.so
+	rm -f rpm/src/*.o rpm/src/*.a rpm/src/*.so rpm/src/*.dll
 	R CMD build rpm
 	R CMD check rpm
 

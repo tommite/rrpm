@@ -6,3 +6,7 @@
 
 # R data files from past sessions
 .Rdata
+
+# libs
+R-pkg/rpm/src/*.a
+R-pkg/rpm/src/rpm.dll

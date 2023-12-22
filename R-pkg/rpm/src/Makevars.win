@@ -1,0 +1,3 @@
+PKG_LIBS = -Lc:/lib/lpsolve -llpsolve55
+PKG_CFLAGS = -Ic:/lib/
+OBJECTS=dominance.a optimization.a matrixops.a
