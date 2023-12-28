@@ -1,7 +1,7 @@
 useDynLib(rpm)
 
 import("ROI")
-import("ROI.plugin.glpk")
+import("ROI.plugin.symphony")
 import("plyr")
 import("hitandrun")
 import("ror")
